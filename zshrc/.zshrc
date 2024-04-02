@@ -1,5 +1,5 @@
 # Path to your oh-my-zsh installation.
-export ZSH=/Users/omerhamerman/.oh-my-zsh
+export ZSH=/Users/pedrocoutinho/.oh-my-zsh
 # Reevaluate the prompt string each time it's displaying a prompt
 setopt prompt_subst
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
@@ -60,7 +60,7 @@ alias .....="cd ../../../.."
 alias ......="cd ../../../../.."
 
 # GO
-export GOPATH='/Users/omerhamerman/go'
+export GOPATH='/Users/pedrocoutinho/go'
 
 # VIM
 alias v="/opt/homebrew/bin/nvim"
@@ -68,7 +68,7 @@ alias v="/opt/homebrew/bin/nvim"
 # Nmap
 alias nm="nmap -sC -sV -oN nmap"
 
-export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/omer/.vimpkg/bin:${GOPATH}/bin:/Users/omerhamerman/.cargo/bin
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/omer/.vimpkg/bin:${GOPATH}/bin:/Users/pedrocoutinho/.cargo/bin:/usr/local/share/dotnet
 
 alias cl='clear'
 
@@ -100,13 +100,13 @@ alias l="eza -l --icons --git -a"
 alias lt="eza --tree --level=2 --long --icons --git"
 
 # SEC STUFF
-alias gobust='gobuster dir --wordlist ~/security/wordlists/diccnoext.txt --wildcard --url'
-alias dirsearch='python dirsearch.py -w db/dicc.txt -b -u'
-alias massdns='~/hacking/tools/massdns/bin/massdns -r ~/hacking/tools/massdns/lists/resolvers.txt -t A -o S bf-targets.txt -w livehosts.txt -s 4000'
-alias server='python -m http.server 4445'
-alias tunnel='ngrok http 4445'
-alias fuzz='ffuf -w ~/hacking/SecLists/content_discovery_all.txt -mc all -u'
-alias gr='~/go/src/github.com/tomnomnom/gf/gf'
+# alias gobust='gobuster dir --wordlist ~/security/wordlists/diccnoext.txt --wildcard --url'
+# alias dirsearch='python dirsearch.py -w db/dicc.txt -b -u'
+# alias massdns='~/hacking/tools/massdns/bin/massdns -r ~/hacking/tools/massdns/lists/resolvers.txt -t A -o S bf-targets.txt -w livehosts.txt -s 4000'
+# alias server='python -m http.server 4445'
+# alias tunnel='ngrok http 4445'
+# alias fuzz='ffuf -w ~/hacking/SecLists/content_discovery_all.txt -mc all -u'
+# alias gr='~/go/src/github.com/tomnomnom/gf/gf'
 
 # FZF
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow'
@@ -133,10 +133,23 @@ function ranger {
 }
 alias rr='ranger'
 
+function suyabai () {
+  SHA256=$(shasum -a 256 /opt/homebrew/bin/yabai | awk "{print \$1;}")
+  if [ -f "/private/etc/sudoers.d/yabai" ]; then
+    sudo sed -i '' -e 's/sha256:[[:alnum:]]*/sha256:'${SHA256}'/' /private/etc/sudoers.d/yabai
+  else
+    echo "sudoers file does not exist yet"
+  fi
+}
+
 # navigation
 cx() { cd "$@" && l; }
 fcd() { cd "$(find . -type d -not -path '*/.*' | fzf)" && l; }
 f() { echo "$(find . -type f -not -path '*/.*' | fzf)" | pbcopy }
 fv() { nvim "$(find . -type f -not -path '*/.*' | fzf)" }
 
-eval "$(zoxide init zsh)"
+eval "$(zoxide init zsh --cmd cd)"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
