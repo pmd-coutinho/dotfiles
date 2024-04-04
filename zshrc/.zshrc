@@ -9,6 +9,7 @@ compinit
 source <(kubectl completion zsh)
 complete -C '/usr/local/bin/aws_completer' aws
 
+eval "$(/opt/homebrew/bin/brew shellenv)"
 source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 bindkey '^w' autosuggest-execute
 bindkey '^e' autosuggest-accept
