@@ -1,54 +1,54 @@
-require("obsidian").setup({
+require('obsidian').setup {
   workspaces = {
     -- {
     --   name = "OmerVault",
-    --   path = "/Users/pedrocoutinho/Obsidian/Omervault",
+    --   path = "/Users/omerhamerman/Obsidian/Omervault",
     -- },
     {
-      name = "Notes",
-      path = "/Users/pedrocoutinho/Obsidian/Notes",
+      name = 'Notes',
+      path = '/Users/pedrocoutinho/Library/Mobile Documents/com~apple~CloudDocs/Obsidian/PedroC',
     },
   },
   completion = {
     nvim_cmp = true,
     min_chars = 2,
   },
-  new_notes_location = "current_dir",
+  new_notes_location = 'current_dir',
   wiki_link_func = function(opts)
     if opts.id == nil then
-      return string.format("[[%s]]", opts.label)
+      return string.format('[[%s]]', opts.label)
     elseif opts.label ~= opts.id then
-      return string.format("[[%s|%s]]", opts.id, opts.label)
+      return string.format('[[%s|%s]]', opts.id, opts.label)
     else
-      return string.format("[[%s]]", opts.id)
+      return string.format('[[%s]]', opts.id)
     end
   end,
 
   mappings = {
     -- "Obsidian follow"
-    ["<leader>of"] = {
+    ['<leader>of'] = {
       action = function()
-        return require("obsidian").util.gf_passthrough()
+        return require('obsidian').util.gf_passthrough()
       end,
       opts = { noremap = false, expr = true, buffer = true },
     },
     -- Toggle check-boxes "obsidian done"
-    ["<leader>od"] = {
+    ['<leader>od'] = {
       action = function()
-        return require("obsidian").util.toggle_checkbox()
+        return require('obsidian').util.toggle_checkbox()
       end,
       opts = { buffer = true },
     },
     -- Create a new newsletter issue
-    ["<leader>onn"] = {
+    ['<leader>onn'] = {
       action = function()
-        return require("obsidian").commands.new_note("Newsletter-Issue")
+        return require('obsidian').commands.new_note 'Newsletter-Issue'
       end,
       opts = { buffer = true },
     },
-    ["<leader>ont"] = {
+    ['<leader>ont'] = {
       action = function()
-        return require("obsidian").util.insert_template("Newsletter-Issue")
+        return require('obsidian').util.insert_template 'Newsletter-Issue'
       end,
       opts = { buffer = true },
     },
@@ -56,7 +56,7 @@ require("obsidian").setup({
 
   note_frontmatter_func = function(note)
     -- This is equivalent to the default frontmatter function.
-    local out = { id = note.id, aliases = note.aliases, tags = note.tags, area = "", project = "" }
+    local out = { id = note.id, aliases = note.aliases, tags = note.tags, area = '', project = '' }
 
     -- `note.metadata` contains any manually added fields in the frontmatter.
     -- So here we just make sure those fields are kept in the frontmatter.
@@ -72,23 +72,23 @@ require("obsidian").setup({
     -- Create note IDs in a Zettelkasten format with a timestamp and a suffix.
     -- In this case a note with the title 'My new note' will be given an ID that looks
     -- like '1657296016-my-new-note', and therefore the file name '1657296016-my-new-note.md'
-    local suffix = ""
+    local suffix = ''
     if title ~= nil then
       -- If title is given, transform it into valid file name.
-      suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
+      suffix = title:gsub(' ', '-'):gsub('[^A-Za-z0-9-]', ''):lower()
     else
       -- If title is nil, just add 4 random uppercase letters to the suffix.
       for _ = 1, 4 do
         suffix = suffix .. string.char(math.random(65, 90))
       end
     end
-    return tostring(os.time()) .. "-" .. suffix
+    return tostring(os.time()) .. '-' .. suffix
   end,
 
   templates = {
-      subdir = "Templates",
-      date_format = "%Y-%m-%d-%a",
-      time_format = "%H:%M",
-      tags = "",
+    subdir = 'Templates',
+    date_format = '%Y-%m-%d-%a',
+    time_format = '%H:%M',
+    tags = '',
   },
-})
+}
