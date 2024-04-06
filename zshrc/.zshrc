@@ -109,11 +109,11 @@ alias lt="eza --tree --level=2 --long --icons --git"
 # alias fuzz='ffuf -w ~/hacking/SecLists/content_discovery_all.txt -mc all -u'
 # alias gr='~/go/src/github.com/tomnomnom/gf/gf'
 
+export PATH=/opt/homebrew/bin:$PATH
+
 # FZF
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow'
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-export PATH=/opt/homebrew/bin:$PATH
+eval "$(fzf --zsh)"
 
 alias mat='osascript -e "tell application \"System Events\" to key code 126 using {command down}" && tmux neww "cmatrix"'
 
