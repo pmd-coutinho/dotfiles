@@ -21,6 +21,7 @@ dooit
 duf
 dust
 eksctl
+eza
 fd
 felixkratz/formulae/borders
 felixkratz/formulae/fnnn
@@ -51,6 +52,7 @@ kustomize
 lazygit
 lolcat
 lsd
+lua-language-server
 mackup
 mas
 mongocli
@@ -87,6 +89,7 @@ the_silver_searcher
 tmuxinator
 tor
 torsocks
+tree
 watch
 wget
 wireguard-go

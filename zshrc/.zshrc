@@ -69,7 +69,7 @@ alias v="/opt/homebrew/bin/nvim"
 # Nmap
 alias nm="nmap -sC -sV -oN nmap"
 
-export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/omer/.vimpkg/bin:${GOPATH}/bin:/Users/pedrocoutinho/.cargo/bin:/usr/local/share/dotnet
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/omer/.vimpkg/bin:${GOPATH}/bin:/Users/pedrocoutinho/.cargo/bin:/usr/local/share/dotnet:/Users/pedrocoutinho/.dotnet/tools:/Users/pedrocoutinho/.local/bin
 
 alias cl='clear'
 
