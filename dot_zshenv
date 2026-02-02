@@ -1,0 +1,2 @@
+. "$HOME/.cargo/env"
+. "/home/pedrocoutinho/.local/share/bob/env/env.sh"
