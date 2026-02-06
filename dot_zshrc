@@ -45,6 +45,12 @@ setopt AUTO_PUSHD
 setopt PUSHD_IGNORE_DUPS
 setopt PUSHD_SILENT
 
+# Completion behavior
+setopt AUTO_LIST           # Automatically list choices on ambiguous completion
+setopt AUTO_MENU           # Show completion menu on successive tab press
+setopt COMPLETE_IN_WORD    # Allow completion from within a word
+setopt ALWAYS_TO_END       # Move cursor to end of word after completion
+
 # Globbing and expansion
 setopt EXTENDED_GLOB
 setopt NOMATCH
@@ -59,6 +65,12 @@ setopt NO_BG_NICE
 setopt NO_HUP
 
 # ============================================================================
+# Plugins
+# ============================================================================
+# Inline suggestions as you type (accept with Right arrow)
+source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# ============================================================================
 # External Tool Initialization
 # ============================================================================
 eval "$(atuin init zsh)"
@@ -68,9 +80,8 @@ eval "$(zoxide init zsh --cmd cd)"
 # ============================================================================
 # Key Bindings
 # ============================================================================
-bindkey '^[[A' history-beginning-search-backward
-bindkey '^[[B' history-beginning-search-forward
-bindkey '^[[Z' reverse-menu-complete
+# Note: Up/Down arrows are handled by atuin for fuzzy history search
+bindkey '^[[Z' reverse-menu-complete  # Shift+Tab for reverse completion
 
 # ============================================================================
 # Aliases
