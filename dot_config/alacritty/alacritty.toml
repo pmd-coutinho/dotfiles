@@ -10,4 +10,4 @@ chars = "\x1b\r"
 
 [font]
 normal = { family = "Cascadia Code NF", style = "Regular" }
-size = 16
+size = 14

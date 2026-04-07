@@ -8,6 +8,7 @@ export SSH_AUTH_SOCK="/home/pedrocoutinho/.var/app/com.bitwarden.desktop/data/.b
 export EDITOR="code --wait"
 export VISUAL="${EDITOR}"
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 
 # ============================================================================
 # History Configuration
@@ -126,4 +127,19 @@ alias free='free -h'
 # Miscellaneous
 alias path='echo -e ${PATH//:/\\n}'
 alias reload='source ~/.zshrc'
-alias zshconfig='${EDITOR} ~/.zshrc'
+alias zshconfig="${EDITOR} ~/.zshrc"
+
+alias docker='podman'
+alias docker-compose='podman-compose'
+# opencode
+export PATH=/var/home/pedrocoutinho/.opencode/bin:$PATH
+eval "$(mise activate zsh)"
+
+# bun completions
+[ -s "/var/home/pedrocoutinho/.bun/_bun" ] && source "/var/home/pedrocoutinho/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+# Add .NET Core SDK tools
+export PATH="$PATH:/var/home/pedrocoutinho/.dotnet/tools"
