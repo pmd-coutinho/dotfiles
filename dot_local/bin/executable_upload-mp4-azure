@@ -1,0 +1,204 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_DIR="${HOME}/.config/upload-mp4-azure"
+LAST_SELECTION_FILE="${CONFIG_DIR}/last-selection"
+
+# --- Validate input ---
+if [[ $# -lt 1 ]]; then
+  echo "Usage: upload-mp4-azure <file.mp4>"
+  exit 1
+fi
+
+FILE="$1"
+
+if [[ ! -f "$FILE" ]]; then
+  echo "Error: file '$FILE' not found"
+  exit 1
+fi
+
+if [[ "${FILE##*.}" != "mp4" ]]; then
+  echo "Error: file must be .mp4"
+  exit 1
+fi
+
+# --- Generate unique filename ---
+RANDOM_HEX=$(od -An -tx1 -N4 /dev/urandom | tr -d ' \n')
+BLOB_NAME="$(date +%Y%m%d%H%M%S)-${RANDOM_HEX}.mp4"
+
+echo "Generated filename: $BLOB_NAME"
+echo ""
+
+# --- Check last selection ---
+USE_LAST=false
+if [[ -f "$LAST_SELECTION_FILE" ]]; then
+  echo "Last selection:"
+  cat "$LAST_SELECTION_FILE"
+  echo ""
+  read -rp "Use same selection? [Y/n] " REPLY
+  if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
+    USE_LAST=true
+  fi
+fi
+
+if [[ "$USE_LAST" == true ]]; then
+  # Read saved account:container pairs
+  PAIRS=()
+  while IFS= read -r line; do
+    PAIRS+=("$line")
+  done < "$LAST_SELECTION_FILE"
+else
+  # --- List nxg storage accounts ---
+  echo "Fetching storage accounts containing 'nxg'..."
+  ACCOUNTS=$(az storage account list --query "[?contains(name, 'nxg')].name" -o tsv 2>/dev/null)
+
+  if [[ -z "$ACCOUNTS" ]]; then
+    echo "Error: no storage accounts containing 'nxg' found"
+    exit 1
+  fi
+
+  # --- Multi-select storage accounts ---
+  echo "Select storage accounts (Tab to multi-select, Enter to confirm):"
+  SELECTED=$(echo "$ACCOUNTS" | fzf --multi --prompt="Storage accounts > ")
+
+  if [[ -z "$SELECTED" ]]; then
+    echo "No accounts selected, aborting."
+    exit 1
+  fi
+
+  echo ""
+
+  # --- Resolve containers for each account ---
+  PAIRS=()
+  while IFS= read -r ACCOUNT; do
+    echo "--- $ACCOUNT ---"
+
+    # Get account key for container/blob operations
+    KEY=$(az storage account keys list \
+      --account-name "$ACCOUNT" \
+      --query "[0].value" -o tsv 2>/dev/null) || true
+
+    if [[ -z "$KEY" ]]; then
+      echo "  Warning: cannot retrieve keys for $ACCOUNT, skipping."
+      continue
+    fi
+
+    # List containers using account key
+    CONTAINERS=$(az storage container list \
+      --account-name "$ACCOUNT" \
+      --account-key "$KEY" \
+      --query "[].name" -o tsv 2>/dev/null)
+
+    if [[ -z "$CONTAINERS" ]]; then
+      echo "  Warning: no containers found in $ACCOUNT, skipping."
+      continue
+    fi
+
+    # Pick container
+    if echo "$CONTAINERS" | grep -qx "main-storage"; then
+      CONTAINER="main-storage"
+      echo "  Using container: main-storage"
+    else
+      echo "  No 'main-storage' container found. Select one:"
+      CONTAINER=$(echo "$CONTAINERS" | fzf --prompt="$ACCOUNT container > ")
+      if [[ -z "$CONTAINER" ]]; then
+        echo "  No container selected, skipping $ACCOUNT."
+        continue
+      fi
+    fi
+
+    PAIRS+=("${ACCOUNT}:${CONTAINER}")
+  done <<< "$SELECTED"
+
+  # --- Save selection ---
+  mkdir -p "$CONFIG_DIR"
+  printf '%s\n' "${PAIRS[@]}" > "$LAST_SELECTION_FILE"
+fi
+
+echo ""
+
+# --- Upload to each account:container pair ---
+CACHE_CONTROL="max-age=31536000, public, must-revalidate"
+
+for PAIR in "${PAIRS[@]}"; do
+  ACCOUNT="${PAIR%%:*}"
+  CONTAINER="${PAIR##*:}"
+
+  echo "--- $ACCOUNT / $CONTAINER ---"
+
+  KEY=$(az storage account keys list \
+    --account-name "$ACCOUNT" \
+    --query "[0].value" -o tsv 2>/dev/null) || true
+
+  if [[ -z "$KEY" ]]; then
+    echo "  Warning: cannot retrieve keys for $ACCOUNT, skipping."
+    continue
+  fi
+
+  echo "  Uploading $BLOB_NAME ..."
+  az storage blob upload \
+    --account-name "$ACCOUNT" \
+    --account-key "$KEY" \
+    --container-name "$CONTAINER" \
+    --name "$BLOB_NAME" \
+    --file "$FILE" \
+    --content-cache-control "$CACHE_CONTROL" \
+    --content-type "video/mp4" \
+    --overwrite false \
+    --only-show-errors
+
+  echo "  Done."
+  echo ""
+done
+
+# --- Summary ---
+echo "============================="
+echo "Filename: $BLOB_NAME"
+echo "============================="
+echo ""
+
+# --- Validation ---
+read -rp "Validate uploads? [y/N] " VALIDATE
+if [[ "$VALIDATE" =~ ^[Yy]$ ]]; then
+  echo ""
+  ALL_OK=true
+  for PAIR in "${PAIRS[@]}"; do
+    ACCOUNT="${PAIR%%:*}"
+    CONTAINER="${PAIR##*:}"
+
+    KEY=$(az storage account keys list \
+      --account-name "$ACCOUNT" \
+      --query "[0].value" -o tsv 2>/dev/null) || true
+
+    if [[ -z "$KEY" ]]; then
+      echo "  ✗ $ACCOUNT — cannot retrieve keys"
+      ALL_OK=false
+      continue
+    fi
+
+    PROPS=$(az storage blob show \
+      --account-name "$ACCOUNT" \
+      --account-key "$KEY" \
+      --container-name "$CONTAINER" \
+      --name "$BLOB_NAME" \
+      --query "properties.contentSettings.cacheControl" \
+      -o tsv 2>/dev/null) || true
+
+    if [[ -z "$PROPS" ]]; then
+      echo "  ✗ $ACCOUNT/$CONTAINER/$BLOB_NAME — blob not found"
+      ALL_OK=false
+    elif [[ "$PROPS" == "$CACHE_CONTROL" ]]; then
+      echo "  ✓ $ACCOUNT/$CONTAINER — Cache-Control: $PROPS"
+    else
+      echo "  ✗ $ACCOUNT/$CONTAINER — Cache-Control mismatch: '$PROPS'"
+      ALL_OK=false
+    fi
+  done
+
+  echo ""
+  if [[ "$ALL_OK" == true ]]; then
+    echo "All uploads validated successfully."
+  else
+    echo "Some uploads failed validation — check above."
+  fi
+fi
